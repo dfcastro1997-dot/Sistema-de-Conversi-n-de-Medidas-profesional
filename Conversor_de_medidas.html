@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Conversión de Medidas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ocultar flechas de los inputs numéricos para un look más limpio */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        /* Personalización sutil del icono de selección (dropdown) en SVG base64 gris */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+    </style>
+</head>
+<body class="bg-[#fcfcfc] min-h-screen flex items-center justify-center p-4 font-sans antialiased text-neutral-900">
+
+    <main class="bg-white w-full max-w-4xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 overflow-hidden">
+        
+        <div class="p-8 md:p-14">
+            
+            <header class="mb-12 text-center">
+                <h1 class="text-3xl md:text-4xl font-light tracking-tight text-neutral-900">Conversor de Medidas</h1>
+                <div class="h-px w-12 bg-neutral-200 mx-auto mt-6 mb-4"></div>
+                <p class="text-neutral-500 text-sm font-light tracking-wide">PRECISIÓN TÉCNICA Y DISEÑO MINIMALISTA</p>
+            </header>
+
+            <!-- Selector de Categoría Principal -->
+            <div class="mb-10 max-w-xs mx-auto">
+                <label for="category" class="sr-only">Categoría de Medida</label>
+                <select id="category" class="w-full bg-transparent border-b border-neutral-300 text-neutral-800 py-3 pl-2 pr-8 text-center text-lg focus:outline-none focus:border-neutral-900 transition-colors cursor-pointer font-medium hover:border-neutral-400">
+                    <option value="length">Longitud</option>
+                    <option value="weight">Peso y Masa</option>
+                    <option value="temperature">Temperatura</option>
+                    <option value="area">Área</option>
+                    <option value="volume">Volumen</option>
+                </select>
+            </div>
+
+            <!-- Contenedor de Interfaz de Conversión -->
+            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
+                
+                <!-- Panel de Origen -->
+                <div class="space-y-6">
+                    <div>
+                        <label for="inputValue" class="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">Valor a convertir</label>
+                        <input type="number" id="inputValue" value="1" step="any" class="w-full bg-neutral-50 border border-neutral-200 text-neutral-900 rounded-lg py-4 px-5 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all text-xl font-light">
+                    </div>
+                    <div>
+                        <label for="unitFrom" class="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">Unidad de origen</label>
+                        <select id="unitFrom" class="w-full bg-white border border-neutral-200 text-neutral-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all cursor-pointer font-light"></select>
+                    </div>
+                </div>
+
+                <!-- Botón de Intercambio (Centro) -->
+                <div class="flex justify-center pt-6 md:pt-0">
+                    <button id="swapBtn" class="group flex items-center justify-center w-12 h-12 bg-white border border-neutral-200 rounded-full hover:bg-neutral-50 hover:border-neutral-300 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-neutral-200">
+                        <span class="text-xs font-medium text-neutral-500 group-hover:text-neutral-900 transition-colors">Swap</span>
+                    </button>
+                </div>
+
+                <!-- Panel de Destino -->
+                <div class="space-y-6">
+                    <div>
+                        <label for="outputValue" class="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">Resultado</label>
+                        <input type="text" id="outputValue" readonly class="w-full bg-transparent border-b-2 border-neutral-900 text-neutral-900 py-4 px-2 font-medium text-2xl focus:outline-none cursor-default">
+                    </div>
+                    <div>
+                        <label for="unitTo" class="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">Unidad de destino</label>
+                        <select id="unitTo" class="w-full bg-white border border-neutral-200 text-neutral-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all cursor-pointer font-light"></select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const conversionData = {
+            length: {
+                baseUnit: 'meter',
+                units: {
+                    meter: { name: 'Metros', factor: 1 },
+                    kilometer: { name: 'Kilómetros', factor: 1000 },
+                    centimeter: { name: 'Centímetros', factor: 0.01 },
+                    millimeter: { name: 'Milímetros', factor: 0.001 },
+                    mile: { name: 'Millas', factor: 1609.34 },
+                    yard: { name: 'Yardas', factor: 0.9144 },
+                    foot: { name: 'Pies', factor: 0.3048 },
+                    inch: { name: 'Pulgadas', factor: 0.0254 }
+                }
+            },
+            weight: {
+                baseUnit: 'kilogram',
+                units: {
+                    kilogram: { name: 'Kilogramos', factor: 1 },
+                    gram: { name: 'Gramos', factor: 0.001 },
+                    milligram: { name: 'Miligramos', factor: 0.000001 },
+                    metricTon: { name: 'Toneladas Métricas', factor: 1000 },
+                    pound: { name: 'Libras', factor: 0.453592 },
+                    ounce: { name: 'Onzas', factor: 0.0283495 }
+                }
+            },
+            area: {
+                baseUnit: 'squareMeter',
+                units: {
+                    squareMeter: { name: 'Metros Cuadrados', factor: 1 },
+                    squareKilometer: { name: 'Kilómetros Cuadrados', factor: 1000000 },
+                    hectare: { name: 'Hectáreas', factor: 10000 },
+                    acre: { name: 'Acres', factor: 4046.86 },
+                    squareFoot: { name: 'Pies Cuadrados', factor: 0.092903 }
+                }
+            },
+            volume: {
+                baseUnit: 'liter',
+                units: {
+                    liter: { name: 'Litros', factor: 1 },
+                    milliliter: { name: 'Mililitros', factor: 0.001 },
+                    cubicMeter: { name: 'Metros Cúbicos', factor: 1000 },
+                    gallonUS: { name: 'Galones (US)', factor: 3.78541 },
+                    fluidOunceUS: { name: 'Onzas Líquidas (US)', factor: 0.0295735 }
+                }
+            },
+            temperature: {
+                isFormulaBased: true,
+                units: {
+                    celsius: { name: 'Celsius' },
+                    fahrenheit: { name: 'Fahrenheit' },
+                    kelvin: { name: 'Kelvin' }
+                }
+            }
+        };
+
+        class UnitConverter {
+            constructor(data) {
+                this.data = data;
+                this.categorySelect = document.getElementById('category');
+                this.unitFromSelect = document.getElementById('unitFrom');
+                this.unitToSelect = document.getElementById('unitTo');
+                this.inputEl = document.getElementById('inputValue');
+                this.outputEl = document.getElementById('outputValue');
+                this.swapBtn = document.getElementById('swapBtn');
+
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.populateUnits();
+                this.convert();
+            }
+
+            bindEvents() {
+                this.categorySelect.addEventListener('change', () => {
+                    this.populateUnits();
+                    this.convert();
+                });
+                this.unitFromSelect.addEventListener('change', () => this.convert());
+                this.unitToSelect.addEventListener('change', () => this.convert());
+                this.inputEl.addEventListener('input', () => this.convert());
+                this.swapBtn.addEventListener('click', () => this.swapUnits());
+            }
+
+            populateUnits() {
+                const category = this.categorySelect.value;
+                const units = this.data[category].units;
+                
+                this.unitFromSelect.innerHTML = '';
+                this.unitToSelect.innerHTML = '';
+
+                Object.keys(units).forEach(key => {
+                    const option1 = document.createElement('option');
+                    option1.value = key;
+                    option1.textContent = units[key].name;
+                    this.unitFromSelect.appendChild(option1);
+
+                    const option2 = document.createElement('option');
+                    option2.value = key;
+                    option2.textContent = units[key].name;
+                    this.unitToSelect.appendChild(option2);
+                });
+
+                if (this.unitToSelect.options.length > 1) {
+                    this.unitToSelect.selectedIndex = 1;
+                }
+            }
+
+            swapUnits() {
+                const temp = this.unitFromSelect.value;
+                this.unitFromSelect.value = this.unitToSelect.value;
+                this.unitToSelect.value = temp;
+                this.convert();
+            }
+
+            convert() {
+                const category = this.categorySelect.value;
+                const from = this.unitFromSelect.value;
+                const to = this.unitToSelect.value;
+                const inputValue = parseFloat(this.inputEl.value);
+
+                if (isNaN(inputValue)) {
+                    this.outputEl.value = '';
+                    return;
+                }
+
+                let result = 0;
+
+                if (this.data[category].isFormulaBased) {
+                    result = this.convertTemperature(inputValue, from, to);
+                } else {
+                    const fromFactor = this.data[category].units[from].factor;
+                    const toFactor = this.data[category].units[to].factor;
+                    
+                    const baseValue = inputValue * fromFactor;
+                    result = baseValue / toFactor;
+                }
+
+                this.outputEl.value = this.formatNumber(result);
+            }
+
+            convertTemperature(value, from, to) {
+                if (from === to) return value;
+                
+                let celsius;
+                if (from === 'celsius') celsius = value;
+                else if (from === 'fahrenheit') celsius = (value - 32) * 5/9;
+                else if (from === 'kelvin') celsius = value - 273.15;
+
+                if (to === 'celsius') return celsius;
+                else if (to === 'fahrenheit') return (celsius * 9/5) + 32;
+                else if (to === 'kelvin') return celsius + 273.15;
+            }
+
+            formatNumber(num) {
+                return parseFloat(num.toFixed(6)).toString();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new UnitConverter(conversionData);
+        });
+    </script>
+</body>
+</html>
