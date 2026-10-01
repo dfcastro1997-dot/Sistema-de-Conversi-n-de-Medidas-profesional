@@ -26,7 +26,7 @@ El aplicativo se encuentra disponible y desplegado para su uso en producción a 
 [Instrucción: Agrega capturas de pantalla de la interfaz en dispositivos de escritorio y móviles dentro de un directorio /assets y actualiza las rutas]
 
 **Interfaz de Conversor (Escritorio):**
-![Vista de Escritorio][(https://i.ibb.co/Gvvdy5F8/image.png)
+![Vista de Escritorio](https://i.ibb.co/Gvvdy5F8/image.png)
 
 ## Características Principales
 
